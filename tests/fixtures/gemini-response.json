@@ -1,0 +1,44 @@
+{
+  "responseId": "gemini-sanitized",
+  "candidates": [
+    {
+      "finishReason": "STOP",
+      "content": {
+        "parts": [
+          {
+            "text": "Example grounded Gemini answer."
+          }
+        ]
+      },
+      "groundingMetadata": {
+        "webSearchQueries": ["example query"],
+        "groundingChunks": [
+          {
+            "web": {
+              "uri": "https://example.org/gemini-source",
+              "title": "Gemini Source"
+            }
+          }
+        ],
+        "groundingSupports": [
+          {
+            "segment": {
+              "startIndex": 0,
+              "endIndex": 8,
+              "text": "Example"
+            },
+            "groundingChunkIndices": [0]
+          }
+        ],
+        "searchEntryPoint": {
+          "renderedContent": "<div>sanitized</div>"
+        }
+      }
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 80,
+    "candidatesTokenCount": 35,
+    "totalTokenCount": 115
+  }
+}

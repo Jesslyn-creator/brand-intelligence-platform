@@ -1,0 +1,38 @@
+{
+  "id": "resp_sanitized_openai",
+  "status": "completed",
+  "output": [
+    {
+      "type": "web_search_call",
+      "id": "ws_sanitized",
+      "status": "completed"
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "Example answer with a citation.",
+          "annotations": [
+            {
+              "type": "url_citation",
+              "url": "https://example.com/source",
+              "title": "Example Source",
+              "start_index": 23,
+              "end_index": 31
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "output_text": "Example answer with a citation.",
+  "usage": {
+    "input_tokens": 100,
+    "output_tokens": 40,
+    "total_tokens": 140,
+    "output_tokens_details": {
+      "reasoning_tokens": 5
+    }
+  }
+}

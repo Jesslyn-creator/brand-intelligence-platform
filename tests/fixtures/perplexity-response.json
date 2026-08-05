@@ -1,0 +1,32 @@
+{
+  "id": "sonar-sanitized",
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "message": {
+        "role": "assistant",
+        "content": "Example Sonar answer."
+      }
+    }
+  ],
+  "citations": ["https://example.edu/perplexity-citation"],
+  "search_results": [
+    {
+      "url": "https://example.edu/perplexity-citation",
+      "title": "Perplexity Source",
+      "snippet": "Example search snippet"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 70,
+    "completion_tokens": 30,
+    "total_tokens": 100,
+    "num_search_queries": 1,
+    "cost": {
+      "input_tokens_cost": 0,
+      "output_tokens_cost": 0,
+      "request_cost": 0,
+      "total_cost": 0
+    }
+  }
+}

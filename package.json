@@ -1,0 +1,42 @@
+{
+  "name": "brand-intelligence-admin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "lint": "eslint . --max-warnings=0",
+    "type-check": "tsc --noEmit",
+    "db:verify": "node scripts/verify-database.mjs",
+    "bootstrap:admin": "node scripts/bootstrap-admin.mjs",
+    "check": "node scripts/check-architecture.mjs",
+    "test:providers": "node scripts/test-provider-contracts.mjs && node scripts/test-adapter-fixtures.mjs",
+    "test": "npm run db:verify && npm run check && npm run test:providers && npm run type-check"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.45.4",
+    "@anthropic-ai/sdk": "^0.115.0",
+    "@google/genai": "^2.13.0",
+    "next": "^16.2.12",
+    "openai": "^6.49.0",
+    "papaparse": "^5.4.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.12",
+    "@types/papaparse": "^5.3.14",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^16.2.12",
+    "typescript": "^5.5.4"
+  },
+  "overrides": {
+    "postcss": "^8.5.25",
+    "sharp": "^0.35.3"
+  }
+}
