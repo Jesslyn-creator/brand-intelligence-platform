@@ -15,10 +15,10 @@
     "test": "npm run db:verify && npm run check && npm run test:providers && npm run type-check"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.6.1",
-    "@supabase/supabase-js": "^2.45.4",
     "@anthropic-ai/sdk": "^0.115.0",
     "@google/genai": "^2.13.0",
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.45.4",
     "next": "^16.2.12",
     "openai": "^6.49.0",
     "papaparse": "^5.4.1",
@@ -33,6 +33,7 @@
     "@types/react-dom": "^18.3.0",
     "eslint": "^9.0.0",
     "eslint-config-next": "^16.2.12",
+    "supabase": "^2.111.0",
     "typescript": "^5.5.4"
   },
   "overrides": {

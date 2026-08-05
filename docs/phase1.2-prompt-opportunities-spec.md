@@ -550,6 +550,19 @@ Additional rules:
 - Promotion history is append-only.
 - Every relationship must enforce project-boundary validation.
 
+## Operational Immutability Policy
+
+Prompt versions are hard-immutable after creation.
+
+This means:
+
+- normal authenticated users cannot update or delete prompt versions
+- service-role application code also cannot update or delete prompt versions
+- corrective migrations must explicitly disable/drop the immutability trigger and recreate it after the correction
+- this is intentional, so historical evaluations remain reproducible against the exact prompt text that was tested
+
+Application code must create a new prompt version for any wording change.
+
 ## Status Transitions
 
 Statuses:
