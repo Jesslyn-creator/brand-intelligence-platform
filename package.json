@@ -11,10 +11,11 @@
     "db:verify": "node scripts/verify-database.mjs",
     "bootstrap:admin": "node scripts/bootstrap-admin.mjs",
     "check": "node scripts/check-architecture.mjs",
+    "test:identity": "node --import \"data:text/javascript,import { register } from 'node:module'; import { pathToFileURL } from 'node:url'; register('./scripts/ts-test-loader.mjs', pathToFileURL('./'));\" scripts/test-evidence-identity.mjs",
     "test:evidence": "node --import \"data:text/javascript,import { register } from 'node:module'; import { pathToFileURL } from 'node:url'; register('./scripts/ts-test-loader.mjs', pathToFileURL('./'));\" scripts/test-evidence-foundation.mjs",
     "test:gsc-csv": "node --import \"data:text/javascript,import { register } from 'node:module'; import { pathToFileURL } from 'node:url'; register('./scripts/ts-test-loader.mjs', pathToFileURL('./'));\" scripts/test-gsc-csv-parser.mjs",
     "test:providers": "node scripts/test-provider-contracts.mjs && node scripts/test-adapter-fixtures.mjs",
-    "test": "npm run db:verify && npm run check && npm run test:evidence && npm run test:gsc-csv && npm run test:providers && npm run type-check"
+    "test": "npm run db:verify && npm run check && npm run test:identity && npm run test:evidence && npm run test:gsc-csv && npm run test:providers && npm run type-check"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",
