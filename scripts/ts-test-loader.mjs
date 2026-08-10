@@ -19,7 +19,7 @@ export async function resolve(specifier, context, nextResolve) {
     };
   }
 
-  if (isOpportunitiesQueriesModule(context.parentURL) && specifier === "@/lib/supabase/server") {
+  if (isOpportunitiesSupabaseMockParent(context.parentURL) && specifier === "@/lib/supabase/server") {
     return {
       url: "data:text/javascript,export async function createSupabaseServerClient(){ return globalThis[Symbol.for('brand-intelligence.opportunities.supabaseClientFactory')](); }",
       shortCircuit: true
@@ -40,8 +40,11 @@ export async function resolve(specifier, context, nextResolve) {
   return nextResolve(specifier, context);
 }
 
-function isOpportunitiesQueriesModule(parentURL) {
-  return typeof parentURL === "string" && parentURL.endsWith("/src/features/opportunities/queries.server.ts");
+function isOpportunitiesSupabaseMockParent(parentURL) {
+  return typeof parentURL === "string" && (
+    parentURL.endsWith("/src/features/opportunities/queries.server.ts")
+    || parentURL.endsWith("/src/features/opportunities/actions.ts")
+  );
 }
 
 function resolveExistingTsPath(targetPath) {
@@ -63,3 +66,5 @@ function resolveExistingTsPathOrNull(targetPath) {
   }
   return null;
 }
+
+

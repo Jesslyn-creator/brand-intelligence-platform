@@ -1,25 +1,33 @@
 import {
   EVIDENCE_SOURCE_TYPES,
   PROMPT_OPPORTUNITY_ACTIVE_STATUSES,
+  PROMPT_OPPORTUNITY_INTENTS,
   PROMPT_OPPORTUNITY_PRIORITIES,
   PROMPT_OPPORTUNITY_STATUSES,
   type EvidenceSourceType,
   type PromptOpportunitiesListInput,
   type PromptOpportunityActiveStatus,
+  type PromptOpportunityCreateInput,
   type PromptOpportunityDuplicateInput,
+  type PromptOpportunityIntent,
   type PromptOpportunityPriority,
   type PromptOpportunityStatus,
-  type ValidatedPromptOpportunitiesListInput
+  type ValidatedPromptOpportunitiesListInput,
+  type ValidatedPromptOpportunityCreateInput
 } from "./types";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const DEFAULT_LIST_LIMIT = 50;
 const MAX_LIST_LIMIT = 100;
+const MAX_CREATE_EVIDENCE_RECORD_IDS = 100;
 
 export class PromptOpportunityValidationError extends Error {
-  constructor(message: string) {
+  readonly fieldErrors?: Record<string, string>;
+
+  constructor(message: string, fieldErrors?: Record<string, string>) {
     super(message);
     this.name = "PromptOpportunityValidationError";
+    this.fieldErrors = fieldErrors;
   }
 }
 
@@ -32,6 +40,30 @@ export function validatePromptOpportunitiesListInput(input: PromptOpportunitiesL
     language: optionalNonEmpty(input.language, "language"),
     sourceType: optionalEnum(input.sourceType, EVIDENCE_SOURCE_TYPES, "sourceType"),
     limit: boundedLimit(input.limit)
+  };
+}
+
+export function validatePromptOpportunityCreateInput(input: PromptOpportunityCreateInput): ValidatedPromptOpportunityCreateInput {
+  const fieldErrors: Record<string, string> = {};
+  const projectId = collect(() => requiredUuid(input.projectId, "project_id"), fieldErrors, "project_id");
+  const topic = collect(() => requiredString(input.topic, "topic"), fieldErrors, "topic");
+  const market = collect(() => requiredString(input.market, "market"), fieldErrors, "market");
+  const language = collect(() => requiredString(input.language, "language"), fieldErrors, "language");
+  const intent = collect(() => optionalEnum(input.intent ?? "unknown", PROMPT_OPPORTUNITY_INTENTS, "intent") ?? "unknown", fieldErrors, "intent");
+  const evidenceRecordIds = collect(() => validateEvidenceRecordIds(input.evidenceRecordIds), fieldErrors, "evidence_record_ids");
+
+  if (Object.keys(fieldErrors).length > 0 || !projectId || !topic || !market || !language || !intent || !evidenceRecordIds) {
+    throw new PromptOpportunityValidationError("Check the opportunity fields and try again.", fieldErrors);
+  }
+
+  return {
+    projectId,
+    topic,
+    market,
+    language,
+    intent,
+    evidenceRecordIds,
+    duplicateWarningAcknowledged: input.duplicateWarningAcknowledged
   };
 }
 
@@ -60,6 +92,32 @@ export function normalizeTopicForLookup(topic: string | null | undefined): strin
 
 export function activeOpportunityStatuses(): PromptOpportunityActiveStatus[] {
   return [...PROMPT_OPPORTUNITY_ACTIVE_STATUSES];
+}
+
+export function maxCreateEvidenceRecordIds(): number {
+  return MAX_CREATE_EVIDENCE_RECORD_IDS;
+}
+
+function collect<T>(fn: () => T, fieldErrors: Record<string, string>, fieldName: string): T | null {
+  try {
+    return fn();
+  } catch (error) {
+    fieldErrors[fieldName] = error instanceof Error ? error.message : `${fieldName} is invalid.`;
+    return null;
+  }
+}
+
+function validateEvidenceRecordIds(values: Array<string | null | undefined>): string[] {
+  if (!values.length) throw new PromptOpportunityValidationError("At least one evidence record is required.");
+  if (values.length > MAX_CREATE_EVIDENCE_RECORD_IDS) {
+    throw new PromptOpportunityValidationError(`No more than ${MAX_CREATE_EVIDENCE_RECORD_IDS} evidence records can be selected.`);
+  }
+
+  const ids = values.map((value) => requiredUuid(value, "evidence_record_ids"));
+  if (new Set(ids.map((id) => id.toLowerCase())).size !== ids.length) {
+    throw new PromptOpportunityValidationError("Duplicate evidence records are not allowed.");
+  }
+  return ids;
 }
 
 function requiredUuid(value: string | null | undefined, fieldName: string): string {
@@ -106,4 +164,4 @@ function boundedLimit(value: number | null | undefined): number {
   return Math.min(value, MAX_LIST_LIMIT);
 }
 
-export type { EvidenceSourceType, PromptOpportunityPriority, PromptOpportunityStatus };
+export type { EvidenceSourceType, PromptOpportunityIntent, PromptOpportunityPriority, PromptOpportunityStatus };
