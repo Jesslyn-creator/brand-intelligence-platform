@@ -19,6 +19,13 @@ export async function resolve(specifier, context, nextResolve) {
     };
   }
 
+  if (isOpportunitiesQueriesModule(context.parentURL) && specifier === "@/lib/supabase/server") {
+    return {
+      url: "data:text/javascript,export async function createSupabaseServerClient(){ return globalThis[Symbol.for('brand-intelligence.opportunities.supabaseClientFactory')](); }",
+      shortCircuit: true
+    };
+  }
+
   if (specifier.startsWith("@/")) {
     return resolveExistingTsPath(join(root, "src", specifier.slice(2)));
   }
@@ -31,6 +38,10 @@ export async function resolve(specifier, context, nextResolve) {
   }
 
   return nextResolve(specifier, context);
+}
+
+function isOpportunitiesQueriesModule(parentURL) {
+  return typeof parentURL === "string" && parentURL.endsWith("/src/features/opportunities/queries.server.ts");
 }
 
 function resolveExistingTsPath(targetPath) {
