@@ -20,6 +20,7 @@ const required = [
 
 const phase11 = readFileSync("supabase/migrations/0002_phase1_1_multi_provider.sql", "utf8");
 const phase12 = readFileSync("supabase/migrations/0003_phase1_2a_prompt_opportunities.sql", "utf8");
+const phase12b = readFileSync("supabase/migrations/0004_phase1_2a_opportunity_create_rpc.sql", "utf8");
 const requiredPhase11 = [
   "create table if not exists public.evaluation_runs",
   "create table if not exists public.provider_test_runs",
@@ -79,6 +80,19 @@ const requiredPhase12 = [
 const missing = required.filter((fragment) => !migration.toLowerCase().includes(fragment.toLowerCase()));
 const missingPhase11 = requiredPhase11.filter((fragment) => !phase11.toLowerCase().includes(fragment.toLowerCase()));
 const missingPhase12 = requiredPhase12.filter((fragment) => !phase12.toLowerCase().includes(fragment.toLowerCase()));
+const requiredPhase12b = [
+  "create_prompt_opportunity_with_evidence",
+  "security invoker",
+  "auth.uid()",
+  "user_can_access_project",
+  "jsonb_typeof(target_evidence_record_ids) <> 'array'",
+  "Duplicate evidence_record_ids are not allowed",
+  "insert into public.prompt_opportunities",
+  "insert into public.prompt_opportunity_evidence",
+  "revoke execute on function public.create_prompt_opportunity_with_evidence",
+  "grant execute on function public.create_prompt_opportunity_with_evidence"
+];
+const missingPhase12b = requiredPhase12b.filter((fragment) => !phase12b.toLowerCase().includes(fragment.toLowerCase()));
 const forbiddenPhase12 = [
   "source_evidence_ids",
   "evidence_ids",
@@ -87,10 +101,11 @@ const forbiddenPhase12 = [
   "numeric opportunity score"
 ].filter((fragment) => phase12.toLowerCase().includes(fragment.toLowerCase()));
 
-if (missing.length || missingPhase11.length || missingPhase12.length || forbiddenPhase12.length) {
+if (missing.length || missingPhase11.length || missingPhase12.length || missingPhase12b.length || forbiddenPhase12.length) {
   console.error(`Migration is missing required fragments:\n${missing.join("\n")}`);
   if (missingPhase11.length) console.error(`Phase 1.1 migration is missing required fragments:\n${missingPhase11.join("\n")}`);
   if (missingPhase12.length) console.error(`Phase 1.2A migration is missing required fragments:\n${missingPhase12.join("\n")}`);
+  if (missingPhase12b.length) console.error(`Phase 1.2A opportunity create RPC migration is missing required fragments:\n${missingPhase12b.join("\n")}`);
   if (forbiddenPhase12.length) console.error(`Phase 1.2A migration includes forbidden fragments:\n${forbiddenPhase12.join("\n")}`);
   process.exit(1);
 }

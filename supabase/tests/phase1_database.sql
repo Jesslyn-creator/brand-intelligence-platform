@@ -1,6 +1,6 @@
 begin;
 
-select plan(96);
+select plan(120);
 
 select has_table('public', 'responses', 'responses table exists');
 select has_table('public', 'evaluation_runs', 'evaluation runs table exists');
@@ -311,6 +311,20 @@ select throws_ok($$update public.prompt_versions set prompt_text = 'changed' whe
 select throws_ok($$delete from public.prompt_versions where id = '60000000-0000-4000-8000-000000000001'$$, 'P0001', null, 'prompt version deletes are rejected');
 
 set local role authenticated;
+reset "request.jwt.claim.sub";
+
+select throws_ok(
+  $$select public.create_prompt_opportunity_with_evidence('30000000-0000-4000-8000-000000000001', 'Unauthenticated create', 'Singapore', 'en', '["80000000-0000-4000-8000-000000000001"]'::jsonb)$$,
+  'P0001',
+  null,
+  'unauthenticated user cannot create prompt opportunity with evidence'
+);
+
+reset role;
+
+select is((select count(*)::int from public.prompt_opportunities where topic = 'Unauthenticated create'), 0, 'unauthenticated RPC leaves no opportunity row');
+
+set local role authenticated;
 set local "request.jwt.claim.sub" = '20000000-0000-4000-8000-000000000001';
 
 select is((select count(*)::int from public.evidence_records where project_id = '30000000-0000-4000-8000-000000000001'), 2, 'user A can select project A evidence');
@@ -329,6 +343,73 @@ select throws_ok(
   null,
   'user A cannot cross-link project A opportunity to project B evidence'
 );
+
+select lives_ok(
+  $$select public.create_prompt_opportunity_with_evidence('30000000-0000-4000-8000-000000000001', 'Atomic RPC Topic', 'Singapore', 'en', '["80000000-0000-4000-8000-000000000001"]'::jsonb, 'recommendation')$$,
+  'user A creates opportunity with one linked evidence record'
+);
+select is((select count(*)::int from public.prompt_opportunities where topic = 'Atomic RPC Topic' and project_id = '30000000-0000-4000-8000-000000000001'), 1, 'atomic RPC creates one opportunity row');
+select is((select created_by from public.prompt_opportunities where topic = 'Atomic RPC Topic'), '20000000-0000-4000-8000-000000000001'::uuid, 'atomic RPC derives created_by from auth.uid');
+select is((select status from public.prompt_opportunities where topic = 'Atomic RPC Topic'), 'new', 'atomic RPC uses initial new status');
+select is((select normalized_topic from public.prompt_opportunities where topic = 'Atomic RPC Topic'), 'atomic rpc topic', 'atomic RPC lets database generate normalized topic');
+select is((select count(*)::int from public.prompt_opportunity_evidence poe join public.prompt_opportunities po on po.id = poe.prompt_opportunity_id where po.topic = 'Atomic RPC Topic'), 1, 'atomic RPC creates linked evidence row');
+select is((select linked_by from public.prompt_opportunity_evidence poe join public.prompt_opportunities po on po.id = poe.prompt_opportunity_id where po.topic = 'Atomic RPC Topic'), '20000000-0000-4000-8000-000000000001'::uuid, 'atomic RPC derives linked_by from auth.uid');
+
+select lives_ok(
+  $$select public.create_prompt_opportunity_with_evidence('30000000-0000-4000-8000-000000000001', 'Atomic RPC Multi Evidence', 'Singapore', 'en', '["80000000-0000-4000-8000-000000000001","80000000-0000-4000-8000-000000000003"]'::jsonb)$$,
+  'user A creates opportunity with multiple linked evidence records'
+);
+select is((select count(*)::int from public.prompt_opportunity_evidence poe join public.prompt_opportunities po on po.id = poe.prompt_opportunity_id where po.topic = 'Atomic RPC Multi Evidence'), 2, 'atomic RPC links multiple evidence records');
+
+select throws_ok(
+  $$select public.create_prompt_opportunity_with_evidence('30000000-0000-4000-8000-000000000001', 'Atomic Empty Evidence', 'Singapore', 'en', '[]'::jsonb)$$,
+  'P0001',
+  null,
+  'empty evidence array is rejected'
+);
+select is((select count(*)::int from public.prompt_opportunities where topic = 'Atomic Empty Evidence'), 0, 'empty evidence array leaves no opportunity row');
+
+select throws_ok(
+  $$select public.create_prompt_opportunity_with_evidence('30000000-0000-4000-8000-000000000001', 'Atomic Malformed Evidence', 'Singapore', 'en', '[null]'::jsonb)$$,
+  'P0001',
+  null,
+  'null or malformed evidence IDs are rejected'
+);
+
+select throws_ok(
+  $$select public.create_prompt_opportunity_with_evidence('30000000-0000-4000-8000-000000000001', 'Atomic Duplicate Evidence IDs', 'Singapore', 'en', '["80000000-0000-4000-8000-000000000001","80000000-0000-4000-8000-000000000001"]'::jsonb)$$,
+  'P0001',
+  null,
+  'duplicate evidence IDs are rejected'
+);
+select is((select count(*)::int from public.prompt_opportunities where topic = 'Atomic Duplicate Evidence IDs'), 0, 'duplicate evidence IDs leave no opportunity row');
+
+select throws_ok(
+  $$select public.create_prompt_opportunity_with_evidence('30000000-0000-4000-8000-000000000001', 'Atomic Cross Project Evidence', 'Singapore', 'en', '["80000000-0000-4000-8000-000000000001","80000000-0000-4000-8000-000000000002"]'::jsonb)$$,
+  'P0001',
+  null,
+  'cross-project evidence ID rejects entire RPC'
+);
+select is((select count(*)::int from public.prompt_opportunities where topic = 'Atomic Cross Project Evidence'), 0, 'cross-project evidence leaves no opportunity row');
+select is((select count(*)::int from public.prompt_opportunity_evidence poe join public.prompt_opportunities po on po.id = poe.prompt_opportunity_id where po.topic = 'Atomic Cross Project Evidence'), 0, 'cross-project evidence leaves no link rows');
+
+select throws_ok(
+  $$select public.create_prompt_opportunity_with_evidence('30000000-0000-4000-8000-000000000002', 'Atomic Unauthorized Project', 'Singapore', 'en', '["80000000-0000-4000-8000-000000000002"]'::jsonb)$$,
+  'P0001',
+  null,
+  'user A cannot create opportunity in project B'
+);
+select is((select count(*)::int from public.prompt_opportunities where topic = 'Atomic Unauthorized Project'), 0, 'unauthorized project leaves no opportunity row');
+
+select throws_ok(
+  $$select public.create_prompt_opportunity_with_evidence('30000000-0000-4000-8000-000000000001', 'Atomic Nonexistent Evidence', 'Singapore', 'en', '["80000000-0000-4000-8000-000000000001","ffffffff-ffff-4fff-8fff-ffffffffffff"]'::jsonb)$$,
+  'P0001',
+  null,
+  'nonexistent evidence ID rejects entire RPC'
+);
+select is((select count(*)::int from public.prompt_opportunities where topic = 'Atomic Nonexistent Evidence'), 0, 'nonexistent evidence leaves no opportunity row');
+
+select is((select count(*)::int from information_schema.parameters where specific_schema = 'public' and specific_name like 'create_prompt_opportunity_with_evidence%' and parameter_name in ('id', 'created_by', 'created_at', 'updated_at', 'normalized_topic', 'status', 'final_priority', 'linked_by')), 0, 'RPC does not accept caller-controlled audit or status fields');
 
 reset role;
 
