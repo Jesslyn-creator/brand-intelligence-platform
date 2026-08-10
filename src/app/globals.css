@@ -40,8 +40,38 @@ button {
   padding: 10px 14px;
 }
 
+button.tab,
+.button-link {
+  min-height: 42px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+  font-weight: 750;
+  padding: 10px 14px;
+}
+
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
 button.secondary {
   background: var(--primary-dark);
+}
+
+button.tab {
+  background: #edf3f1;
+  color: var(--primary-dark);
+}
+
+button.tab.active,
+.button-link.secondary {
+  background: var(--primary-dark);
+  color: white;
 }
 
 button:disabled {
@@ -115,6 +145,10 @@ dd {
   color: white;
 }
 
+.compact-topbar {
+  min-height: 20vh;
+}
+
 .eyebrow {
   font-size: 0.76rem;
   font-weight: 850;
@@ -128,6 +162,10 @@ dd {
   grid-template-columns: minmax(260px, 330px) minmax(0, 1fr);
   gap: 20px;
   padding: 24px;
+}
+
+.single-column {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .panel,
@@ -234,6 +272,82 @@ dd {
   gap: 10px;
 }
 
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.evidence-import-page {
+  max-width: 980px;
+  width: 100%;
+}
+
+.evidence-form {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+
+.evidence-field span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.result-box {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.result-box.success {
+  background: #edf6f1;
+  border-color: #b8d8c9;
+}
+
+.error-box {
+  background: #fff3f1;
+  border-color: #efc1b9;
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.result-grid > div,
+.row-failure {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: white;
+  padding: 10px;
+}
+
+.result-details {
+  display: grid;
+  gap: 8px;
+}
+
+.row-failures {
+  display: grid;
+  gap: 8px;
+  max-height: 260px;
+  overflow: auto;
+  padding-top: 8px;
+}
+
+.row-failure {
+  display: grid;
+  gap: 6px;
+}
+
+.row-failure p {
+  color: var(--muted);
+}
+
 .table {
   display: grid;
   overflow: hidden;
@@ -303,7 +417,8 @@ dd {
   }
 
   .results-table,
-  .runs-table {
+  .runs-table,
+  .result-grid {
     grid-template-columns: 1fr;
   }
 }

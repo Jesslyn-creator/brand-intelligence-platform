@@ -1,4 +1,5 @@
 import { Fragment } from "react";
+import Link from "next/link";
 import { addCompetitorBrand, saveTargetBrand } from "@/features/brands/actions";
 import { createPromptSet, importPromptCsv } from "@/features/prompt-sets/actions";
 import { createProject } from "@/features/projects/actions";
@@ -128,6 +129,7 @@ export default async function Home({ searchParams }: PageProps) {
                 <dd>{project.default_language}</dd>
               </div>
             </dl>
+            <Link className="button-link" href={`/evidence/import?project_id=${project.id}`}>Import evidence</Link>
           </section>
 
           <form action={createProject} className="panel stack">
